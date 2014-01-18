@@ -1,0 +1,32 @@
+# Notice
+This is very much a work in progress, as I interact and develop more with the Leap Motion
+
+Docs will be written once the code stablized.
+There is currently no release in Clojars.
+
+# clojure_leap
+
+A Clojure library designed to ... well, that part is up to you.
+
+## Usage
+
+FIXME
+See an [example video](http://www.pauldee.org/ClojureLeapMouse.mov) of the mouse demo.
+
+## TODO
+
+Not necessarily in this order 
+
+ * Full docs on everything - API, Marg, Tutorial, walk-through the examples
+ * API Docs are clear about what is core Leap API and what is added/extra in the Clojure interface
+ * Wiki docs on performance and ideal usage patterns
+ * A way to average/smooth the mouse movement so it isn't so bouncey/glitchy
+ * Write a gesture composition function or macro
+ * Finish up Vector functions
+ * create a `movements` ns, in it, create a palm-controlled `joystick`
+
+## License
+
+Copyright © 2013 Paul deGrandis
+
+Distributed under the Eclipse Public License, the same as Clojure.
