@@ -5,11 +5,21 @@
             [leap-step.example.popular :as popular]))
 
 (defn process-frame [frame dubs]
-  (println (if (leap/single-hand? frame)
+  (do      (if (leap/single-hand? frame)
              (let [low-hand (leap/lowest-hand frame)
-                   [x y z] (hand/palm-position low-hand)]
-               x)
-
+                   pos (hand/palm-position low-hand)
+                   x (.getX pos)
+                   y (.getY pos)
+                   z (.getZ pos)]
+               (println pos)
+               (when true ;(< y 150)
+                (condp > x
+                  -300 "No Zone"
+                  -150 (live/ctl dubs :note 34)
+                  0 (live/ctl dubs :note 37)
+                  150 (live/ctl dubs :note 39)
+                  300 (live/ctl dubs :note 42)
+                  "No Zone")))
              "false")))
 
   ;(cond
@@ -18,7 +28,7 @@
     ;:else (do (live/ctl dubs :note 62 :wobble 8))))
 
 (defn -main [& args]
-  (let [dubs (popular/dubstep)
+  (let [dubs (popular/dubstep 34 120 4)
         listener (leap/listener :frame #(process-frame (:frame %) dubs)
                                 :default #(println "Toggling" (:state %) "for listener:" (:listener %)))
         [controller _] (leap/controller listener)]
