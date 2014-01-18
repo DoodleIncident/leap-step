@@ -9,8 +9,9 @@
        cf2 (midicps (+ note 2))
        cf3 (midicps (- note 24))
 
-       freq4 (midicps (+ note 7))
-       freq5 (midicps (- note 24))
+       freq4 (midicps (+ note 19))
+       freq5 (midicps (+ note 12))
+       freq6 (midicps (+ note 7))
 
        swr (demand trig 0 (dseq [wobble] INF))
        sweep (lin-exp (lf-tri swr) -1 1 40 3000)
@@ -50,6 +51,12 @@
        wob5 (+ wob5 (bpf wob5 2000 2))
        wob5 (+ wob5 (* 0.3 (g-verb wob5 13 0.7 0.7)))
 
+       wob6 (apply + (saw (* freq6 [0.99 1.01])))
+       wob6 (lpf wob6 sweep)
+       wob6 (* (+ (* wobble 0.02) 0.4) (normalizer wob6))
+       wob6 (+ wob6 (bpf wob6 2000 2))
+       wob6 (+ wob6 (* 0.3 (g-verb wob6 13 0.7 0.7)))
+
        kickenv (decay (t2a (demand (impulse:kr (/ bpm 30)) 0 (dseq [1 0 0 1 0 0 1 0 1 0 0 1 0 1 0 0] INF))) 0.7)
        kick (* (* kickenv 7) (sin-osc (+ 20 (* kickenv kickenv kickenv 150))))
        kick (clip2 kick 1)
@@ -70,7 +77,8 @@
    (out out-bus    (* v (clip2 (+ (/ (+ (* wob-vol wob)
                                         (* chord-vol (+ crd1 crd2 crd3))
                                         (* wob4-vol wob4)
-                                        (* (* wob4-vol 0.7) wob5)) 
+                                        (* (* wob4-vol 0.7) wob5)
+                                        (* (* wob4-vol 0.8) wob6)) 
                                       (+ wob-vol (* 3 chord-vol) wob4-vol))
                                   (* kick-vol kick)
                                   (* snare-vol snare)
