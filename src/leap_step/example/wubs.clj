@@ -19,7 +19,11 @@
 
 (defn process-frame [frame dubs]
   (do (cond
-       (not (leap/hands? frame)) (swap! my-rgb (fn [x] [0 0 1]))
+       (not (leap/hands? frame)) 
+        (do (swap! my-rgb (fn [x] [0 0 1]))
+            (live/ctl dubs :wob-vol 0)
+            (live/ctl dubs :wob4-vol 0)
+            (live/ctl dubs :chord-vol 0))
        (leap/single-hand? frame)
         (let [low-hand (leap/lowest-hand frame)
               pos (hand/palm-position low-hand)
@@ -27,17 +31,19 @@
               y (.getY pos)
               z (.getZ pos)]
           (println pos)
-          (swap! my-rgb (fn [x] [1 0 0]))
-          (when (< z 150)
-           (condp > y
-             ; "No Zone"
-             100 (live/ctl dubs :wobble 1)
-             175 (live/ctl dubs :wobble 2)
-             250 (live/ctl dubs :wobble 4)
-             325 (live/ctl dubs :wobble 8)
-             400 (live/ctl dubs :wobble 12)
-             475 (live/ctl dubs :wobble 16)
-             "No Zone")
+          (if (< z 150)
+           (do (swap! my-rgb (fn [x] [1 0 0]))
+               (condp > y
+                 ; "No Zone"
+                 100 (live/ctl dubs :wobble 1)
+                 175 (live/ctl dubs :wobble 2)
+                 250 (live/ctl dubs :wobble 4)
+                 325 (live/ctl dubs :wobble 8)
+                 400 (live/ctl dubs :wobble 12)
+                 475 (live/ctl dubs :wobble 16)
+                 "No Zone"))
+           (do (swap! my-rgb (fn [x] [0 0 1]))
+               (live/ctl dubs :wob-vol 0)))
 
            (if-not (hand/fist? low-hand)
              (condp > x
@@ -53,7 +59,7 @@
                0 (live/ctl dubs :note 61 :chord-vol 1 :wob4-vol 0)
                150 (live/ctl dubs :note 63 :chord-vol 1 :wob4-vol 0)
                300 (live/ctl dubs :note 68 :chord-vol 1 :wob4-vol 0)
-               "No Zone"))))
+               "No Zone")))
         :else    
         (let [lefthand (leap/leftmost-hand frame)
               pos1 (hand/palm-position lefthand)
