@@ -36,10 +36,10 @@
                     "No Zone")
                   (condp > x
                     -300 "No Zone"
-                    -125 (live/ctl dubs :note 58 :chord-vol 1 :wob4-vol 0)
-                    0 (live/ctl dubs :note 61 :chord-vol 1 :wob4-vol 0)
-                    150 (live/ctl dubs :note 63 :chord-vol 1 :wob4-vol 0)
-                    300 (live/ctl dubs :note 68 :chord-vol 1 :wob4-vol 0)
+                    -125 (live/ctl dubs :note 58 :chord-vol 1 :wob4-vol 0 :wob-vol 1)
+                    0 (live/ctl dubs :note 61 :chord-vol 1 :wob4-vol 0 :wob-vol 1)
+                    150 (live/ctl dubs :note 63 :chord-vol 1 :wob4-vol 0 :wob-vol 1)
+                    300 (live/ctl dubs :note 68 :chord-vol 1 :wob4-vol 0 :wob-vol 1)
                     "No Zone"))))
              :else    
              (let [lefthand (leap/leftmost-hand frame)
