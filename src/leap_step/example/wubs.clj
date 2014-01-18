@@ -2,7 +2,8 @@
   (:require [leap-step.core :as leap]
             [leap-step.hand :as hand]
             [overtone.live :as live]
-            [leap-step.example.popular :as popular]))
+            [leap-step.example.popular :as popular]
+            [shadertone.tone :as t]))
 
 (defn process-frame [frame dubs]
   (do      (cond
@@ -78,6 +79,9 @@
     ;:else (do (live/ctl dubs :note 62 :wobble 8))))
 
 (defn -main [& args]
+  (t/start "shiny/sine_dance.glsl"
+           :width 614 :height 720
+           :textures [:overtone-audio :previous-frame])
   (let [dubs (popular/dubstep 34 120 4)
         listener (leap/listener :frame #(process-frame (:frame %) dubs)
                                 :default #(println "Toggling" (:state %) "for listener:" (:listener %)))
