@@ -1,6 +1,7 @@
 (ns leap-step.example.wubs
   (:require [leap-step.core :as leap]
             [leap-step.hand :as hand]
+            [leap-step.gestures :as gestures]
             [overtone.live :as live]
             [leap-step.example.popular :as popular]
             [shadertone.tone :as t]))
@@ -54,7 +55,8 @@
                   -150 (live/ctl dubs :note 34 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
                   0 (live/ctl dubs :note 37 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
                   150 (live/ctl dubs :note 39 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
-                  300 (live/ctl dubs :note 42 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
+                  270 (live/ctl dubs :note 42 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
+                  340 (live/ctl dubs :note 44 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
                   "No Zone"))
               (do (swap! my-rgb (fn [x] [0 1 1]))
                 (condp > x
@@ -62,7 +64,8 @@
                   -125 (live/ctl dubs :note 58 :chord-vol 1 :wob4-vol 0)
                   0 (live/ctl dubs :note 61 :chord-vol 1 :wob4-vol 0)
                   150 (live/ctl dubs :note 63 :chord-vol 1 :wob4-vol 0)
-                  300 (live/ctl dubs :note 68 :chord-vol 1 :wob4-vol 0)
+                  270 (live/ctl dubs :note 66 :chord-vol 1 :wob4-vol 0)
+                  340 (live/ctl dubs :note 68 :chord-vol 1 :wob4-vol 0)
                   "No Zone"))))
           :else    
           (let [lefthand (leap/leftmost-hand frame)
@@ -95,6 +98,7 @@
                 -300 (live/ctl dubs :note 37 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
                 -150 (live/ctl dubs :note 39 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
                 -80 (live/ctl dubs :note 42 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
+                -30 (live/ctl dubs :note 44 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
                 "No Zone"))))))
 
   ;(cond
