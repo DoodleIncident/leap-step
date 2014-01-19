@@ -1,5 +1,6 @@
 (ns leap-step.example.popular
-  (:use [overtone.core]))
+  (:use [overtone.core]
+        [overtone.synth.stringed]))
 
 
 (defsynth dubstep [rootNote 34 bpm 120 wobble 8 note 34 snare-vol 1 kick-vol 1 hihat-vol 1 v 1 chord-vol 0 wob-vol 0 wob4-vol 0 out-bus 0]
@@ -51,7 +52,7 @@
                                   (* snare-vol snare)
                                   (* hihat-vol hihat)
                                   (* 0.5 hihatD))
-                               1)))))
+                               1.5)))))
    ;(out out-bus    (* v (clip2 (* hihat-vol hihat) 1)))))
 
 
