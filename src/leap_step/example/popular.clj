@@ -1,7 +1,6 @@
 (ns leap-step.example.popular
   (:use [overtone.core]))
 
-
 (defsynth dubstep [rootNote 34 bpm 120 wobble 8 note 34 snare-vol 1 kick-vol 1 hihat-vol 1 v 1 chord-vol 0 wob-vol 0 wob4-vol 0 out-bus 0]
 
   (defn wub [offset b-freq roomsize]
@@ -140,5 +139,13 @@
     (poly/on-press m (fn [x y s]
                        (poly/toggle-led m x y))))
 )
+
+(defn loop-seq [metro action things]
+  (let [beat (metro)]
+    (at (metro beat) (#(action (first things))))
+    (apply-at (metro (inc beat)) loop-seq metro action (rest things) [])))
+;(def metro (metronome 120))
+;(def g (guitar))
+;(loop-seq metro #(guitar-strum g %) (cycle [:C :G :Am :F]))
 
 ;;(stop)
