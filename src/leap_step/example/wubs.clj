@@ -8,8 +8,8 @@
 ;(t/start "shiny/implicit_fn.glsl"
 ;         :width 614 :height 720)
 (def my-rgb (atom [0.8 0.8 0]))
-(t/start "shiny/spectrograph.glsl"
-         :width 1024 :height 512
+(t/start-fullscreen "shiny/spectrograph.glsl"
+         ;:width 1024 :height 512
          :textures [:overtone-audio :previous-frame]
          :user-data {"iRGB" my-rgb})
 ;(t/start "shiny/rgb.glsl"
