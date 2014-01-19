@@ -1,13 +1,12 @@
 # leap-step
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure project that uses ohpauleez library "clojure-leap" in conjunction with the Music library "overtone" and the shader library "shadertone" to create interactive motion based dubstep and music visualization.
 
-## Usage
+How to use:
+Vertical position impacts "wobbles" (basically number of 'wubs' per beat)
+Horizontal position impacts pitch/frequency
 
-FIXME
+One open hand (with detectable fingers) produces low heavy dubstep bass
+A closed fist detects higher pitch chords
+two hands produces mid-range fifths
 
-## License
-
-Copyright © 2014 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.
