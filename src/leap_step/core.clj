@@ -1,191 +1,122 @@
 (ns leap-step.core
-  (:refer-clojure :exclude [empty? count vector?])
-  (:require [leap-step.controller :as l-controller]
-            [leap-step.frame :as l-frame]
-            [leap-step.pointable :as l-pointable]
-            [leap-step.hand :as l-hand]
-            [leap-step.screen :as l-screen]
-            [leap-step.protocols :as l-protocols]
-            [leap-step.extended-protos :as l-eprotos])
-  (:import (com.leapmotion.leap Controller
-                                Listener
-                                Frame
-                                Hand Finger Tool Pointable
-                                Vector)))
+  (:require [clojure-leap.core :as leap]
+            [clojure-leap.hand :as hand]
+            [clojure-leap.gestures :as gestures]
+            [overtone.live :as live]
+            [shadertone.tone :as t]
+            [leap-step.sounds.wubs :as wubs])) 
+
+;(t/start "shiny/implicit_fn.glsl"
+;         :width 614 :height 720)
+(def my-rgb (atom [0.8 0.8 0]))
+(t/start-fullscreen "shiny/spectrograph.glsl"
+         ;:width 1024 :height 512
+         :textures [:overtone-audio :previous-frame]
+         :user-data {"iRGB" my-rgb})
+;(t/start "shiny/rgb.glsl"
+;         :width 1024 :height 512
+;         :user-data {"iRGB" my-rgb})
 
 
-;; Predicates
-;;;;;;;;;;;;;;;;
-(defn controller? [potential-controller]
-  (instance? Controller potential-controller))
+(defn process-frame [frame dubs]
+  (do (cond
+        (not (leap/hands? frame)) 
+        (do (swap! my-rgb (fn [x] [0 0 1]))
+            (live/ctl dubs :wob-vol 0)
+            (live/ctl dubs :wob4-vol 0)
+            (live/ctl dubs :chord-vol 0))
+        (leap/single-hand? frame)
+        (let [low-hand (leap/lowest-hand frame)
+              pos (hand/palm-position low-hand)
+              x (.getX pos)
+              y (.getY pos)
+              z (.getZ pos)]
+          (println pos)
+          (if (< z 150)
+            (do (swap! my-rgb (fn [x] [1 0 0]))
+                (condp > y
+                  ; "No Zone"
+                  100 (live/ctl dubs :wobble 1)
+                  175 (live/ctl dubs :wobble 2)
+                  250 (live/ctl dubs :wobble 4)
+                  325 (live/ctl dubs :wobble 8)
+                  400 (live/ctl dubs :wobble 12)
+                  475 (live/ctl dubs :wobble 16)
+                  "No Zone"))
+            (do (swap! my-rgb (fn [x] [0 0 1]))
+                (live/ctl dubs :wob-vol 0)
+                (live/ctl dubs :wob4-vol 0)
+                (live/ctl dubs :chord-vol 0)))
 
-(defn listener? [potential-listener]
-  (instance? Listener potential-listener))
+            (if-not (hand/fist? low-hand)
+              (do (swap! my-rgb (fn [x] [1 0 0]))
+                (condp > x
+                  -300 "No Zone"
+                  -150 (live/ctl dubs :note 34 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
+                  0 (live/ctl dubs :note 37 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
+                  150 (live/ctl dubs :note 39 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
+                  270 (live/ctl dubs :note 42 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
+                  340 (live/ctl dubs :note 44 :chord-vol 0 :wob4-vol 0 :wob-vol 1)
+                  "No Zone"))
+              (do (swap! my-rgb (fn [x] [0 1 1]))
+                (condp > x
+                  -300 "No Zone"
+                  -125 (live/ctl dubs :note 58 :chord-vol 1 :wob4-vol 0)
+                  0 (live/ctl dubs :note 61 :chord-vol 1 :wob4-vol 0)
+                  150 (live/ctl dubs :note 63 :chord-vol 1 :wob4-vol 0)
+                  270 (live/ctl dubs :note 66 :chord-vol 1 :wob4-vol 0)
+                  340 (live/ctl dubs :note 68 :chord-vol 1 :wob4-vol 0)
+                  "No Zone"))))
+          :else    
+          (let [lefthand (leap/leftmost-hand frame)
+                pos1 (hand/palm-position lefthand)
+                x1 (.getX pos1)
+                y1 (.getY pos1)
+                z1 (.getZ pos1)
+                righthand (leap/rightmost-hand frame)
+                pos2 (hand/palm-position righthand)
+                x2 (.getX pos2)
+                y2 (.getY pos2)
+                z2 (.getZ pos2)]
+            (swap! my-rgb (fn [x] [0 1 0]))
+            (when (and (< z1 150) (< z2 150))
+              (println (- x1 x2))
+              (condp > y1
+                ; "No Zone"
+                100 (live/ctl dubs :wobble 1)
+                175 (live/ctl dubs :wobble 2)
+                250 (live/ctl dubs :wobble 4)
+                325 (live/ctl dubs :wobble 8)
+                400 (live/ctl dubs :wobble 12)
+                475 (live/ctl dubs :wobble 16)
+                "No Zone")
 
-(defn frame? [potential-frame]
-  (instance? Frame potential-frame))
 
-(defn hand? [potential-hand]
-  (instance? Hand potential-hand))
+              (condp > (- x1 x2)
+                -700 "No Zone"
+                -400 (live/ctl dubs :note 34 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
+                -300 (live/ctl dubs :note 37 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
+                -150 (live/ctl dubs :note 39 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
+                -80 (live/ctl dubs :note 42 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
+                -30 (live/ctl dubs :note 44 :chord-vol 0 :wob4-vol 1 :wob-vol 1.5)
+                "No Zone"))))))
 
-(defn pointable? [potential-pointable]
-  (instance? Pointable potential-pointable))
+  ;(cond
+  ;(not (leap/hands? frame)) (do (live/ctl dubs :note 50 :wobble 1))
+  ;(leap/single-hand? frame) (do (live/ctl dubs :note 32 :wobble 4))
+  ;:else (do (live/ctl dubs :note 62 :wobble 8))))
 
-(defn finger? [potential-finger]
-  (or (instance? Finger potential-finger)
-      (and (pointable? potential-finger) (l-pointable/finger? potential-finger))))
-
-(defn tool? [potential-tool]
-  (or (instance? Tool potential-tool)
-      (and (pointable? potential-tool) (l-pointable/tool? potential-tool))))
-
-(defn vector? [potential-vector]
-  (instance? Vector potential-vector))
-
-(def valid? l-protocols/valid?)
-
-
-;; Frame
-;;;;;;;;;;
-(defn frame [t & [history-count]]
-  (cond
-    (controller? t) (l-controller/frame t history-count)
-    (pointable? t)  (l-pointable/frame t)
-    (hand? t)       (l-hand/frame t)))
-
-(def frames l-controller/frames)
-
-;; Hands
-;;;;;;;;;;;
-(def hands? l-frame/hands?)
-(def hands l-frame/hands)
-(def raw-hand l-frame/raw-hand)
-(defn ^Hand hand
-  ([^Pointable pointable]
-   (l-pointable/hand pointable))
-  ([^Frame frame hand-id]
-   (l-frame/hand frame hand-id)))
-
-(def single-hand? l-frame/single-hand?)
-(def leftmost-hand l-frame/leftmost-hand)
-(def rightmost-hand l-frame/rightmost-hand)
-(def highest-hand l-frame/highest-hand)
-(def lowest-hand l-frame/lowest-hand)
-
-(def same-hand? l-hand/equal?)
-(def same-screen? l-screen/equal?)
-(def same-pointable? l-pointable/equal?)
-
-;; NOTE: The following use protocols
-;; To get raw performance (and type hints) please use the specific functions
-;; directly in the namespaces.
-;; The protocol functions below are for ease of use and quick prototyping only.
-
-;; Fingers
-;;;;;;;;;;;;
-(def fingers? l-protocols/fingers?)
-(def fingers l-protocols/fingers)
-(def raw-finger l-protocols/raw-finger)
-(def finger l-protocols/finger)
-(def leftmost-finger l-protocols/leftmost-finger)
-(def rightmost-finger l-protocols/rightmost-finger)
-(def highest-finger l-protocols/highest-finger)
-(def lowest-finger l-protocols/lowest-finger)
-
-;; Tools
-;;;;;;;;;
-(def tools? l-protocols/tools?)
-(def tools l-protocols/tools)
-(def raw-tool l-protocols/raw-tool)
-(def tool l-protocols/tool)
-(def leftmost-tool l-protocols/leftmost-tool)
-(def rightmost-tool l-protocols/rightmost-tool)
-(def highest-tool l-protocols/highest-tool)
-(def lowest-tool l-protocols/lowest-tool)
-
-;; Pointables
-;;;;;;;;;;;;;;
-(def pointables? l-protocols/pointables?)
-(def pointables l-protocols/pointables)
-(def raw-pointable l-protocols/raw-pointable)
-(def pointable l-protocols/pointable)
-(def leftmost-pointable l-protocols/leftmost-pointable)
-(def rightmost-pointable l-protocols/rightmost-pointable)
-(def highest-pointable l-protocols/highest-pointable)
-(def lowest-pointable l-protocols/lowest-pointable)
-
-;; Leap *Lists
-;;;;;;;;;;;;;;;
-(def empty? l-protocols/empty?)
-(def count l-protocols/count)
-
-;; Movement Helpers
-;;;;;;;;;;;;;;;;;;;;
-(defn movement?
-  ([t])
-  ([t direction-kw]))
-
-;; Listeners and Controllers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn map->listener
-  "Given a map with the keys- :init, :connect, :disconnect, :exit, :frame
-  Produce a Listener object.
-  The functions of the Listener object (those passed in as the values of the map)
-  accept a single map as their argument, with the keys- :controller, :frame, :screen.
-  This differs from the standard Leap API, which only passes in the controller."
-  [handlers]
-  (proxy [Listener] []
-    (onInit [controller]
-      ((:init handlers (:default handlers identity)) (assoc (l-controller/controller-map controller this)
-                                                            :state :init)))
-    (onConnect [controller]
-      ((:connect handlers (:default handlers identity)) (assoc (l-controller/controller-map controller this)
-                                                               :state :connect)))
-    (onDisconnect [controller]
-      ((:disconnect handlers (:default handlers identity)) (assoc (l-controller/controller-map controller this)
-                                                                  :state :disconnect)))
-    (onExit [controller]
-      ((:exit handlers (:default handlers identity)) (assoc (l-controller/controller-map controller this)
-                                                            :state :exit)))
-    (onFrame [controller]
-      ((:frame handlers (:default handlers identity)) (l-controller/controller-map controller this)))))
-
-(defn listener [& on-actions]
-  (let [handlers (apply hash-map on-actions)]
-    (map->listener handlers)))
-
-(defn add-listener! [^Controller controller ^Listener listener]
-  (.addListener controller listener))
-
-(defn remove-listener! [^Controller controller ^Listener listener]
-  (.removeListener controller listener))
-
-(defn attach-listeners!
-  "Attach many listeners (leap.Listeners) to a controller.
-  You pass in a list/seq/vector of listeners,
-  or a varags list of listeners"
-  [controller & listener-objs]
-  (when-let [listener-objs (if (seq? (first listener-objs))
-                             (first listener-objs) listener-objs)]
-    (interleave listener-objs
-                (doall (map #(add-listener! controller %) listener-objs)))))
-
-(defn controller
-  "Create a controller and optionally hook up listeners to it.
-  Listeners can just be maps or leap.Listener objects.
-  If they are hash-maps, they will be converted to leap.Listener objects
-  via then `map->listener` function
-  This returns a Vector: [controller-obj list-of-listeners]
-  This design choice is to stop the JVM from GC'ing listeners out from underneath you."
-  [& listeners]
-  {:pre [(every? #(or (map? %) (listener? %)) listeners)]}
-  (let [listener-objs (map #(if (map? %) (map->listener %) %) listeners)
-        controller (Controller.)]
-    (when (seq listener-objs)
-      (attach-listeners! controller listener-objs))
-    [controller listener-objs]))
-
-(comment
- 
-  )
-
+  (defn -main [& args]
+    (let [dubs (wubs/dubstep 34 120 4)
+          listener (leap/listener :frame #(process-frame (:frame %) dubs)
+                                  :default #(println "Toggling" (:state %) "for listener:" (:listener %)))
+          [controller _] (leap/controller listener)]
+      ;    (read-line)
+      ;    (swap! my-rgb (fn [x] [0 0 1]))
+      ;    (read-line)
+      ;    (swap! my-rgb (fn [x] [1 0 0]))
+      ;    (read-line)
+      ;    (swap! my-rgb (fn [x] [0 1 1]))
+      (println "Press Enter to quit")
+      (read-line)
+      (leap/remove-listener! controller listener)))
