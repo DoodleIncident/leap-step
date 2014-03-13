@@ -2,7 +2,7 @@
   (:use [overtone.core]
         [overtone.synth.stringed]))
 
-(defsynth dubstep [rootNote 34 bpm 120 wobble 8 note 34 snare-vol 1 kick-vol 1 hihat-vol 1 v 1 chord-vol 0 wob-vol 0 wob4-vol 0 out-bus 0]
+(defsynth dubstep [rootNote 34 bpm 120 wobble 8 note 34 snare-vol 0.7 kick-vol 0.7 hihat-vol 0.7 v 0.7 chord-vol 0 wob-vol 0 wob4-vol 0 out-bus 0]
 
   (defn wub [offset b-freq roomsize]
     (let [trig-i (impulse:kr (/ bpm 120))
