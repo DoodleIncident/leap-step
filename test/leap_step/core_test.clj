@@ -1,6 +1,6 @@
 (ns leap-step.core-test
-  (:use clojure.test
-        leap-step.core))
+  (:require [clojure.test :refer :all]
+            [leap-step.core :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."
